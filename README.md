@@ -32,7 +32,7 @@ nambot-project/
 ├── nambot.html          # Frontend (single file, no framework)
 ├── test_api.py          # API key tester — run before starting server
 ├── requirements.txt
-└── .env.example
+└── .env
 ```
 
 ---
@@ -42,7 +42,7 @@ nambot-project/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/nambot.git
+git clone https://github.com/namanh987/nambot.git
 cd nambot
 python -m venv .venv
 
