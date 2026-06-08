@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nambot — AI Math Solver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0b0c10; --bg2: #111318; --bg3: #181b22; --bg4: #1e2230;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf2; --text2: #9a9db0; --text3: #5c5f74;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'Lato', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --r: 10px; --r2: 16px;
+    --nambot: #5bffc8; --nambot-dim: rgba(91,255,200,0.12); --nambot-dim2: rgba(91,255,200,0.06);
+    --anhbot: #ff6b6b; --anhbot-dim: rgba(255,107,107,0.12); --anhbot-dim2: rgba(255,107,107,0.06);
+    --accent: var(--nambot); --accent-dim: var(--nambot-dim); --accent-dim2: var(--nambot-dim2);
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: var(--bg2); } ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(11,12,16,0.85); backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem; height: 60px;
+  }
+  .nav-logo { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .nav-logo .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2.5s ease-in-out infinite; transition: background 0.4s, box-shadow 0.4s; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)} }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+
+  /* user pill in nav */
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 99px; padding: 5px 14px 5px 10px;
+    font-size: 13px; color: var(--text2); cursor: pointer;
+    transition: border-color .2s;
+  }
+  .user-pill:hover { border-color: var(--accent); color: var(--text); }
+  .user-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #000; }
+
+  .btn-nav-auth {
+    background: var(--accent); color: #000;
+    font-family: var(--font-head); font-weight: 700; font-size: 13px;
+    padding: 7px 18px; border-radius: 99px; border: none; cursor: pointer;
+    transition: opacity .2s;
+  }
+  .btn-nav-auth:hover { opacity: .85; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px;
+    position: relative; transform: translateY(20px); transition: transform .25s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: color .2s, background .2s; }
+  .modal-close:hover { color: var(--text); background: var(--bg3); }
+  .modal h2 { font-family: var(--font-head); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+  .modal-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--bg3); border-radius: 10px; padding: 4px; }
+  .modal-tab { flex: 1; padding: 8px; border: none; background: none; color: var(--text2); font-family: var(--font-head); font-size: 13px; font-weight: 700; border-radius: 7px; cursor: pointer; transition: background .2s, color .2s; }
+  .modal-tab.active { background: var(--accent); color: #000; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-family: var(--font-mono); letter-spacing: .04em; }
+  .modal-field input {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--r); color: var(--text); font-family: var(--font-mono);
+    font-size: 13px; padding: 10px 14px; outline: none; transition: border-color .2s;
+  }
+  .modal-field input:focus { border-color: var(--accent); }
+  .modal-submit {
+    width: 100%; background: var(--accent); color: #000;
+    font-family: var(--font-head); font-weight: 700; font-size: 15px;
+    padding: 12px; border-radius: var(--r); border: none; cursor: pointer;
+    margin-top: 6px; transition: opacity .2s;
+  }
+  .modal-submit:hover { opacity: .85; }
+  .modal-submit:disabled { opacity: .4; cursor: default; }
+  .modal-error { font-size: 12px; color: #ff6b6b; margin-top: 10px; text-align: center; min-height: 18px; font-family: var(--font-mono); }
+  .modal-success { font-size: 12px; color: var(--nambot); margin-top: 10px; text-align: center; min-height: 18px; font-family: var(--font-mono); }
+
+  /* guest banner */
+  .guest-banner {
+    background: var(--deepbot-dim); border: 1px solid rgba(192,132,252,0.25);
+    border-radius: var(--r); padding: 10px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    font-size: 13px; color: var(--text2);
+  }
+  .guest-banner strong { color: var(--deepbot); }
+  .guest-banner .prompts-left { font-family: var(--font-mono); font-size: 12px; color: var(--deepbot); }
+  .guest-register-btn {
+    background: var(--deepbot); color: #000; border: none; border-radius: 99px;
+    padding: 5px 14px; font-size: 12px; font-family: var(--font-head); font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: opacity .2s; flex-shrink: 0;
+  }
+  .guest-register-btn:hover { opacity: .85; }
+
+  /* ── HERO ── */
+  .hero { position: relative; padding: 160px 2.5rem 100px; text-align: center; overflow: hidden; }
+  .hero-glow { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 700px; height: 400px; pointer-events: none; transition: background .5s; background: radial-gradient(ellipse at center, rgba(192,132,252,0.10) 0%, transparent 70%); }
+  .hero-badge { display: inline-flex; align-items: center; gap: 7px; background: var(--accent-dim); border: 1px solid rgba(192,132,252,0.25); color: var(--accent); font-size: 12px; font-family: var(--font-mono); padding: 5px 14px; border-radius: 99px; margin-bottom: 2rem; letter-spacing: .04em; animation: fadeUp .6s ease both; transition: all .4s; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .hero h1 { font-family: var(--font-head); font-size: clamp(42px,7vw,76px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 1.5rem; animation: fadeUp .6s .1s ease both; }
+  .hero h1 em { font-style: normal; color: var(--accent); transition: color .4s; }
+  .hero p { font-size: 17px; color: var(--text2); max-width: 520px; margin: 0 auto 2.5rem; font-weight: 300; line-height: 1.75; animation: fadeUp .6s .2s ease both; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; animation: fadeUp .6s .3s ease both; }
+  .btn-primary { background: var(--accent); color: #000; font-family: var(--font-head); font-weight: 700; font-size: 15px; padding: 13px 30px; border-radius: 99px; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: opacity .2s, transform .15s; }
+  .btn-primary:hover { opacity: .85; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text); font-family: var(--font-head); font-weight: 600; font-size: 15px; padding: 12px 28px; border-radius: 99px; border: 1px solid var(--border2); cursor: pointer; text-decoration: none; display: inline-block; transition: border-color .2s, background .2s, color .2s; }
+  .btn-ghost:hover { background: var(--bg3); border-color: var(--accent); color: var(--accent); }
+
+  /* ── STATS ── */
+  .stats { display: flex; justify-content: center; gap: 3rem; padding: 0 2.5rem 80px; flex-wrap: wrap; animation: fadeUp .6s .4s ease both; }
+  .stat { text-align: center; }
+  .stat-num { font-family: var(--font-head); font-size: 32px; font-weight: 800; color: var(--accent); letter-spacing: -1px; transition: color .4s; }
+  .stat-label { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+  /* ── BOTS ── */
+  .bots-section, .app-section, .features-section, .topics-section, .how-section { padding: 0 2rem 80px; max-width: 1200px; margin: 0 auto; }
+  .section-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: .5rem; transition: color .4s; }
+  .section-h2 { font-family: var(--font-head); font-size: 30px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 2rem; }
+
+  .bots-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+  .bot-card { background: var(--bg2); border: 2px solid var(--border); border-radius: var(--r2); padding: 22px 20px; cursor: pointer; transition: border-color .25s, background .25s, transform .15s; position: relative; overflow: hidden; }
+  .bot-card::before { content:''; position: absolute; top:0; left:0; right:0; height:3px; border-radius: var(--r2) var(--r2) 0 0; opacity:0; transition: opacity .3s; }
+  .bot-card.nambot-card::before  { background: var(--nambot); }
+  .bot-card.anhbot-card::before  { background: var(--anhbot); }
+  .bot-card.gembot-card::before  { background: var(--gembot); }
+  .bot-card.deepbot-card::before { background: var(--deepbot); }
+  .bot-card:hover { transform: translateY(-2px); }
+  .bot-card.nambot-card:hover  { border-color: var(--nambot);  background: var(--bg3); }
+  .bot-card.anhbot-card:hover  { border-color: var(--anhbot);  background: var(--bg3); }
+  .bot-card.gembot-card:hover  { border-color: var(--gembot);  background: var(--bg3); }
+  .bot-card.deepbot-card:hover { border-color: var(--deepbot); background: var(--bg3); }
+  .bot-card.active::before { opacity:1; }
+  .bot-card.nambot-card.active  { border-color: var(--nambot);  background: rgba(91,255,200,0.05); }
+  .bot-card.anhbot-card.active  { border-color: var(--anhbot);  background: rgba(255,107,107,0.05); }
+  .bot-card.gembot-card.active  { border-color: var(--gembot);  background: rgba(79,195,247,0.05); }
+  .bot-card.deepbot-card.active { border-color: var(--deepbot); background: rgba(192,132,252,0.05); }
+
+  /* locked bot overlay */
+  .bot-card.locked { opacity: .5; cursor: not-allowed; }
+  .bot-card.locked:hover { transform: none; border-color: var(--border); background: var(--bg2); }
+  .lock-badge { position: absolute; top: 10px; right: 10px; background: var(--bg4); border: 1px solid var(--border2); border-radius: 99px; font-size: 10px; font-family: var(--font-mono); padding: 2px 8px; color: var(--text3); display: none; }
+  .bot-card.locked .lock-badge { display: block; }
+
+  .bot-avatar { font-size: 28px; margin-bottom: 10px; display: block; }
+  .bot-name { font-family: var(--font-head); font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .bot-card.nambot-card  .bot-name { color: var(--nambot); }
+  .bot-card.anhbot-card  .bot-name { color: var(--anhbot); }
+  .bot-card.gembot-card  .bot-name { color: var(--gembot); }
+  .bot-card.deepbot-card .bot-name { color: var(--deepbot); }
+  .bot-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .bot-tag { display: inline-block; margin-top: 10px; font-size: 10px; font-family: var(--font-mono); padding: 3px 8px; border-radius: 5px; font-weight: 500; }
+  .nambot-card  .bot-tag { background: var(--nambot-dim);  color: var(--nambot); }
+  .anhbot-card  .bot-tag { background: var(--anhbot-dim);  color: var(--anhbot); }
+  .gembot-card  .bot-tag { background: var(--gembot-dim);  color: var(--gembot); }
+  .deepbot-card .bot-tag { background: var(--deepbot-dim); color: var(--deepbot); }
+  .active-check { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; opacity: 0; transition: opacity .3s; }
+  .nambot-card  .active-check { background: var(--nambot-dim);  color: var(--nambot); }
+  .anhbot-card  .active-check { background: var(--anhbot-dim);  color: var(--anhbot); }
+  .gembot-card  .active-check { background: var(--gembot-dim);  color: var(--gembot); }
+  .deepbot-card .active-check { background: var(--deepbot-dim); color: var(--deepbot); }
+  .bot-card.active .active-check { opacity: 1; }
+
+  /* ── SOLVER ── */
+  .app-grid { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; align-items: start; }
+  .sidebar { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); overflow: hidden; position: sticky; top: 76px; }
+  .sidebar-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-head h3 { font-family: var(--font-head); font-size: 13px; font-weight: 700; letter-spacing: .05em; color: var(--text2); text-transform: uppercase; }
+  .clear-btn { font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: color .2s, background .2s; }
+  .clear-btn:hover { color: #ff6b6b; background: rgba(255,107,107,.1); }
+  .history-list { list-style: none; max-height: 420px; overflow-y: auto; }
+  .history-item { padding: 10px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+  .history-item:hover { background: var(--bg3); }
+  .history-item:last-child { border-bottom: none; }
+  .hi-q { font-family: var(--font-mono); font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+  .hi-bot { font-size: 10px; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; }
+  .hi-bot.nb { background: var(--nambot-dim);  color: var(--nambot); }
+  .hi-bot.ab { background: var(--anhbot-dim);  color: var(--anhbot); }
+  .hi-bot.gb { background: var(--gembot-dim);  color: var(--gembot); }
+  .hi-bot.db { background: var(--deepbot-dim); color: var(--deepbot); }
+  .history-empty { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
+
+  .solver { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); overflow: hidden; display: flex; flex-direction: column; transition: border-color .4s; }
+  .solver-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .active-bot-pill { display: flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 99px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; border: 1px solid; transition: all .4s; }
+  .active-bot-pill .pill-dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 2s infinite; }
+  .topic-select { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; border-radius: var(--r); cursor: pointer; outline: none; }
+  .example-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+  .echip { font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; background: var(--bg4); border: 1px solid var(--border); border-radius: 6px; color: var(--text2); cursor: pointer; white-space: nowrap; transition: border-color .15s, color .15s, background .15s; }
+  .echip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim2); }
+
+  .chat-area { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 360px; max-height: 420px; overflow-y: auto; }
+  .message { display: flex; flex-direction: column; }
+  .message.user { align-items: flex-end; } .message.bot { align-items: flex-start; }
+  .msg-label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 5px; letter-spacing: .06em; text-transform: uppercase; }
+  .msg-bubble { max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .message.user .msg-bubble { background: var(--accent); color: #000; font-family: var(--font-mono); font-size: 13px; font-weight: 500; border-bottom-right-radius: 3px; transition: background .4s; }
+  .message.bot .msg-bubble { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 3px; }
+  .message.bot .msg-bubble.loading { color: var(--text3); font-style: italic; font-family: var(--font-mono); font-size: 12px; }
+
+  .input-area { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; background: var(--bg2); }
+  .input-area textarea { flex: 1; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--font-mono); font-size: 13px; padding: 11px 14px; resize: none; min-height: 46px; max-height: 130px; outline: none; transition: border-color .2s; line-height: 1.5; }
+  .input-area textarea:focus { border-color: var(--accent); }
+  .input-area textarea::placeholder { color: var(--text3); }
+  .send-btn { background: var(--accent); color: #000; border: none; border-radius: var(--r); width: 46px; height: 46px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; transition: opacity .2s, transform .15s, background .4s; }
+  .send-btn:hover { opacity: .85; transform: scale(1.05); }
+  .send-btn:disabled { opacity: .35; cursor: default; transform: none; }
+
+  /* ── FEATURES ── */
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 1rem; }
+  .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 28px 24px; transition: border-color .25s, background .25s; }
+  .feature-card:hover { border-color: rgba(192,132,252,.3); background: var(--bg3); }
+  .feat-icon { font-size: 26px; margin-bottom: 14px; display: block; }
+  .feat-title { font-family: var(--font-head); font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .feat-desc { font-size: 14px; color: var(--text2); line-height: 1.65; }
+
+  /* ── TOPICS ── */
+  .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 10px; }
+  .topic-pill { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; text-align: center; cursor: pointer; transition: all .2s; }
+  .topic-pill:hover { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+  .tp-icon { font-size: 22px; display: block; margin-bottom: 6px; }
+  .tp-name { font-family: var(--font-head); font-size: 13px; font-weight: 700; }
+
+  /* ── HOW ── */
+  .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+  .step { display: flex; flex-direction: column; gap: 12px; }
+  .step-num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); border: 1px solid rgba(192,132,252,.3); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: color .4s, border-color .4s; }
+  .step h3 { font-family: var(--font-head); font-size: 18px; font-weight: 700; }
+  .step p { font-size: 14px; color: var(--text2); line-height: 1.65; }
+
+  /* ── FOOTER ── */
+  footer { border-top: 1px solid var(--border); padding: 40px 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .footer-logo { font-family: var(--font-head); font-size: 18px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .footer-copy { font-size: 13px; color: var(--text3); }
+  .footer-links { display: flex; gap: 1.5rem; list-style: none; }
+  .footer-links a { color: var(--text3); font-size: 13px; text-decoration: none; transition: color .2s; }
+  .footer-links a:hover { color: var(--text); }
+  .section-divider { max-width: 1200px; margin: 0 auto 60px; padding: 0 2rem; }
+  .section-divider hr { border: none; border-top: 1px solid var(--border); }
+
+  @media (max-width: 900px) { .bots-grid { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 768px) { .app-grid{grid-template-columns:1fr} .sidebar{position:static} .steps{grid-template-columns:1fr} .nav-links{display:none} .hero{padding:120px 1.5rem 60px} .bots-grid{grid-template-columns:1fr 1fr} }
+  @media (max-width: 480px) { .bots-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- ── AUTH MODAL ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modalTitle">Welcome back</h2>
+    <p class="modal-sub" id="modalSub">Sign in to unlock all 4 bots with unlimited prompts.</p>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabLogin"    onclick="switchTab('login')">Login</button>
+      <button class="modal-tab"        id="tabRegister" onclick="switchTab('register')">Register</button>
+    </div>
+    <div class="modal-field">
+      <label>EMAIL</label>
+      <input type="email" id="authEmail" placeholder="you@example.com" />
+    </div>
+    <div class="modal-field">
+      <label>PASSWORD</label>
+      <input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitAuth()" />
+    </div>
+    <button class="modal-submit" id="authSubmit" onclick="submitAuth()">Sign in</button>
+    <div class="modal-error"   id="authError"></div>
+    <div class="modal-success" id="authSuccess"></div>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#"><span class="dot" id="navDot"></span>Nambot</a>
+  <ul class="nav-links">
+    <li><a href="#bots">AI Bots</a></li>
+    <li><a href="#solver">Solver</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#topics">Topics</a></li>
+  </ul>
+  <div class="nav-right">
+    <!-- shown when logged out -->
+    <button class="btn-nav-auth" id="navAuthBtn" onclick="openModal('login')">Sign in</button>
+    <!-- shown when logged in -->
+    <div class="user-pill" id="userPill" style="display:none" onclick="logout()">
+      <div class="user-avatar" id="userAvatar">N</div>
+      <span id="userEmail2">user</span>
+      <span style="color:var(--text3);font-size:11px">· logout</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-glow" id="heroGlow"></div>
+  <div class="hero-badge" id="heroBadge">✦ 4 AI Bots · Step-by-Step · Instant</div>
+  <h1>Solve <em id="heroEm">Any</em> Math<br/>Problem Instantly</h1>
+  <p>Choose your AI companion — four powerful bots, each tuned differently. Free to start, more power when you register.</p>
+  <div class="hero-btns">
+    <a href="#bots" class="btn-primary">Choose your bot →</a>
+    <a href="#features" class="btn-ghost">See features</a>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">2</div><div class="stat-label">AI Bots</div></div>
+  <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Math Topics</div></div>
+  <div class="stat"><div class="stat-num">Free</div><div class="stat-label">To start</div></div>
+  <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Always on</div></div>
+</div>
+
+<!-- ── BOTS ── -->
+<section class="bots-section" id="bots">
+  <div class="section-title">Choose Your Bot</div>
+  <div class="section-h2">Two Bots, One Goal: Solve Your Math</div>
+  <div class="bots-grid">
+
+    <div class="bot-card nambot-card active" onclick="selectBot('nambot')" id="card-nambot">
+      <div class="active-check">✓</div>
+      <span class="bot-avatar">🟢</span>
+      <div class="bot-name">NamBot</div>
+      <p class="bot-desc">Your step-by-step math guide powered by Llama 3.3 70B on Groq. Crystal-clear numbered steps, instant speed, and a helpful tip with every solution.</p>
+      <span class="bot-tag">✦ Free · No login needed (10 prompts)</span>
+    </div>
+
+    <div class="bot-card anhbot-card locked" onclick="requireAuth('anhbot')" id="card-anhbot">
+      <div class="lock-badge">🔒 registered</div>
+      <span class="bot-avatar">🔴</span>
+      <div class="bot-name">AnhBot</div>
+      <p class="bot-desc">Deep reasoning power from DeepSeek-R1. Chain-of-thought on the hardest problems — competition math, advanced proofs, and multi-step derivations.</p>
+      <span class="bot-tag">Registered users</span>
+    </div>
+
+  </div>
+</section>
+
+<div class="section-divider"><hr/></div>
+
+<!-- ── SOLVER ── -->
+<section class="app-section" id="solver">
+  <div class="section-title">Live Solver</div>
+  <div class="section-h2">Ask Your Math Problem</div>
+
+  <!-- guest banner -->
+  <div class="guest-banner" id="guestBanner">
+    <div>
+      <strong>Guest mode</strong> — using Nambot (free, 10 prompts).
+      <span class="prompts-left" id="promptsLeft">10 prompts remaining</span>
+    </div>
+    <button class="guest-register-btn" onclick="openModal('register')">Register free →</button>
+  </div>
+
+  <div class="app-grid">
+    <div class="sidebar">
+      <div class="sidebar-head">
+        <h3>History</h3>
+        <button class="clear-btn" onclick="clearHistory()">Clear</button>
+      </div>
+      <ul class="history-list" id="historyList">
+        <li class="history-empty" id="historyEmpty">No problems yet.<br/>Start solving!</li>
+      </ul>
+    </div>
+
+    <div class="solver" id="solverCard">
+      <div class="solver-toolbar">
+        <div class="active-bot-pill" id="activePill">
+          <span class="pill-dot" id="pillDot"></span>
+          <span id="pillName">DeepBot</span>
+        </div>
+        <select class="topic-select">
+          <option>All Topics</option><option>Algebra</option><option>Calculus</option>
+          <option>Geometry</option><option>Statistics</option><option>Trigonometry</option>
+          <option>Number Theory</option>
+        </select>
+        <div class="example-chips">
+          <button class="echip" onclick="useExample('Solve: 3x² - 12x + 9 = 0')">3x²-12x+9=0</button>
+          <button class="echip" onclick="useExample('Differentiate f(x) = x³ln(x)')">d/dx x³ln(x)</button>
+          <button class="echip" onclick="useExample('Find sin(75°) exactly')">sin(75°)</button>
+          <button class="echip" onclick="useExample('Area of circle with radius 7')">r=7 circle</button>
+        </div>
+      </div>
+
+      <div class="chat-area" id="chatArea">
+        <div class="message bot">
+          <div class="msg-label">Nambot</div>
+          <div class="msg-bubble">Hello! 🟢 I'm Nambot — free for everyone, up to 10 prompts without login.\n\nRegister free to unlock AnhBot too (DeepSeek-R1 for harder problems).\n\nType your math problem and I'll solve it step by step!</div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <textarea id="mathInput" placeholder="e.g. Solve x² + 5x + 6 = 0 …" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><hr/></div>
+
+<!-- ── FEATURES ── -->
+<section class="features-section" id="features">
+  <div class="section-title">Why NamBot</div>
+  <div class="section-h2">Everything You Need</div>
+  <div class="features-grid">
+    <div class="feature-card"><span class="feat-icon">🆓</span><div class="feat-title">Free to start</div><p class="feat-desc">NamBot is available instantly with no account needed. Get step-by-step solutions right away.</p></div>
+    <div class="feature-card"><span class="feat-icon">🤖</span><div class="feat-title">2 AI Bots</div><p class="feat-desc">Nambot (Llama 3.3 70B) is free for guests. Register to also unlock AnhBot (DeepSeek-R1) for the hardest problems.</p></div>
+    <div class="feature-card"><span class="feat-icon">🪜</span><div class="feat-title">Step-by-Step</div><p class="feat-desc">Never just an answer. Every bot shows numbered steps so you understand the method, not just the result.</p></div>
+    <div class="feature-card"><span class="feat-icon">🧠</span><div class="feat-title">Context Memory</div><p class="feat-desc">Ask follow-up questions. Each bot remembers your conversation so you can dig deeper into any solution.</p></div>
+    <div class="feature-card"><span class="feat-icon">🗂️</span><div class="feat-title">History Log</div><p class="feat-desc">Every problem is saved in your sidebar, tagged with which bot answered it.</p></div>
+    <div class="feature-card"><span class="feat-icon">♾️</span><div class="feat-title">Unlimited for registered</div><p class="feat-desc">Free registration gives you unlimited prompts across both bots. No credit card, ever.</p></div>
+  </div>
+</section>
+
+<div class="section-divider"><hr/></div>
+
+<!-- ── TOPICS ── -->
+<section class="topics-section" id="topics">
+  <div class="section-title">Topics</div>
+  <div class="section-h2">What Can You Solve?</div>
+  <div class="topics-grid">
+    <div class="topic-pill" onclick="setTopic('Solve: 5x - 3 = 2x + 9')"><span class="tp-icon">🔢</span><span class="tp-name">Algebra</span></div>
+    <div class="topic-pill" onclick="setTopic('Find the limit as x→0 of sin(x)/x')"><span class="tp-icon">📈</span><span class="tp-name">Calculus</span></div>
+    <div class="topic-pill" onclick="setTopic('Find the volume of a sphere with radius 5')"><span class="tp-icon">📐</span><span class="tp-name">Geometry</span></div>
+    <div class="topic-pill" onclick="setTopic('Prove that sin²θ + cos²θ = 1')"><span class="tp-icon">〰️</span><span class="tp-name">Trigonometry</span></div>
+    <div class="topic-pill" onclick="setTopic('Explain standard deviation and how to calculate it')"><span class="tp-icon">📊</span><span class="tp-name">Statistics</span></div>
+    <div class="topic-pill" onclick="setTopic('Prove there are infinitely many prime numbers')"><span class="tp-icon">∞</span><span class="tp-name">Number Theory</span></div>
+    <div class="topic-pill" onclick="setTopic('Find the determinant of a 3x3 matrix')"><span class="tp-icon">⬛</span><span class="tp-name">Linear Algebra</span></div>
+    <div class="topic-pill" onclick="setTopic('If I flip 3 coins, what is the probability of exactly 2 heads?')"><span class="tp-icon">🎲</span><span class="tp-name">Probability</span></div>
+    <div class="topic-pill" onclick="setTopic('What is 15% of 480?')"><span class="tp-icon">➕</span><span class="tp-name">Arithmetic</span></div>
+    <div class="topic-pill" onclick="setTopic('Solve the ODE: dy/dx = 2y, y(0) = 3')"><span class="tp-icon">🌊</span><span class="tp-name">Diff. Equations</span></div>
+    <div class="topic-pill" onclick="setTopic('Simplify (3+4i)(2-i)')"><span class="tp-icon">𝑖</span><span class="tp-name">Complex Numbers</span></div>
+    <div class="topic-pill" onclick="setTopic('What is a proof by contradiction? Give an example.')"><span class="tp-icon">💡</span><span class="tp-name">Logic & Proofs</span></div>
+  </div>
+</section>
+
+<div class="section-divider"><hr/></div>
+
+<!-- ── HOW ── -->
+<section class="how-section" id="how">
+  <div class="section-title">How It Works</div>
+  <div class="section-h2">Three Simple Steps</div>
+  <div class="steps">
+    <div class="step"><div class="step-num">01</div><h3>Pick your bot</h3><p>Start free with Nambot (10 prompts, no login). Register free to also unlock AnhBot — DeepSeek-R1 for the hardest problems.</p></div>
+    <div class="step"><div class="step-num">02</div><h3>Type your problem</h3><p>Enter any math question in plain English or standard notation. No special formatting needed — all bots understand both.</p></div>
+    <div class="step"><div class="step-num">03</div><h3>Learn & ask more</h3><p>Read the step-by-step solution, ask follow-up questions, or switch bots for a second opinion.</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;transition:background .4s"></span>&nbsp;Nambot</div>
+  <ul class="footer-links"><li><a href="#bots">Bots</a></li><li><a href="#solver">Solver</a></li><li><a href="#features">Features</a></li><li><a href="#topics">Topics</a></li></ul>
+  <div class="footer-copy">© 2026 Nambot. Free math AI for everyone.</div>
+</footer>
+
+<script>
+  /* ── CONFIG ── */
+  const API = 'http://localhost:8000';   // change to your deployed backend URL
+  const GUEST_LIMIT = 10;
+
+  const BOTS = {
+    nambot: { name:'NamBot', shortCode:'nb', color:'#5bffc8', colorDim:'rgba(91,255,200,0.12)',  colorDim2:'rgba(91,255,200,0.06)',  pillBorder:'rgba(91,255,200,0.4)',  glowColor:'rgba(91,255,200,0.10)' },
+    anhbot: { name:'AnhBot', shortCode:'ab', color:'#ff6b6b', colorDim:'rgba(255,107,107,0.12)', colorDim2:'rgba(255,107,107,0.06)', pillBorder:'rgba(255,107,107,0.4)', glowColor:'rgba(255,107,107,0.08)' },
+  };
+
+  /* ── STATE ── */
+  let activeBot    = 'nambot';
+  let conversation = [];
+  let isLoading    = false;
+  let authMode     = 'login';
+  let guestPrompts = parseInt(localStorage.getItem('nb_guest') ?? GUEST_LIMIT);
+
+  // Auth state
+  let jwt       = localStorage.getItem('nb_jwt')   || null;
+  let userEmail = localStorage.getItem('nb_email') || null;
+
+  /* ── ELEMENTS ── */
+  const chatArea    = document.getElementById('chatArea');
+  const mathInput   = document.getElementById('mathInput');
+  const sendBtn     = document.getElementById('sendBtn');
+  const historyList = document.getElementById('historyList');
+
+  /* ── INIT ── */
+  (function init() {
+    applyBotTheme('nambot');
+    updateAuthUI();
+    updateGuestBanner();
+  })();
+
+  /* ── AUTH UI ── */
+  function updateAuthUI() {
+    const loggedIn = !!jwt;
+    document.getElementById('navAuthBtn').style.display = loggedIn ? 'none' : 'block';
+    document.getElementById('userPill').style.display   = loggedIn ? 'flex' : 'none';
+    document.getElementById('guestBanner').style.display = loggedIn ? 'none' : 'flex';
+
+    if (loggedIn && userEmail) {
+      document.getElementById('userEmail2').textContent = userEmail.split('@')[0];
+      document.getElementById('userAvatar').textContent = userEmail[0].toUpperCase();
+    }
+
+    // unlock/lock bot cards
+    const locked = ['anhbot'];
+    locked.forEach(b => {
+      const card = document.getElementById('card-' + b);
+      if (loggedIn) {
+        card.classList.remove('locked');
+        card.onclick = () => selectBot(b);
+      } else {
+        card.classList.add('locked');
+        card.onclick = () => requireAuth(b);
+      }
+    });
+  }
+
+  function updateGuestBanner() {
+    if (jwt) return;
+    document.getElementById('promptsLeft').textContent = guestPrompts + ' prompt' + (guestPrompts !== 1 ? 's' : '') + ' remaining';
+  }
+
+  function openModal(mode) {
+    authMode = mode || 'login';
+    switchTab(authMode);
+    document.getElementById('authError').textContent   = '';
+    document.getElementById('authSuccess').textContent = '';
+    document.getElementById('authEmail').value    = '';
+    document.getElementById('authPassword').value = '';
+    document.getElementById('modalOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('authEmail').focus(), 200);
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  });
+
+  function switchTab(mode) {
+    authMode = mode;
+    document.getElementById('tabLogin').classList.toggle('active',    mode === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+    document.getElementById('modalTitle').textContent   = mode === 'login' ? 'Welcome back' : 'Create account';
+    document.getElementById('modalSub').textContent     = mode === 'login' ? 'Sign in to unlock Nambot + AnhBot.' : 'Free forever — unlock both bots instantly.';
+    document.getElementById('authSubmit').textContent   = mode === 'login' ? 'Sign in' : 'Create account';
+    document.getElementById('authError').textContent    = '';
+    document.getElementById('authSuccess').textContent  = '';
+  }
+
+  async function submitAuth() {
+    const email    = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const errEl    = document.getElementById('authError');
+    const okEl     = document.getElementById('authSuccess');
+    const btn      = document.getElementById('authSubmit');
+
+    if (!email || !password) { errEl.textContent = 'Please fill in both fields.'; return; }
+
+    btn.disabled = true;
+    btn.textContent = authMode === 'login' ? 'Signing in…' : 'Creating account…';
+    errEl.textContent = ''; okEl.textContent = '';
+
+    try {
+      const endpoint = authMode === 'login' ? '/auth/login' : '/auth/register';
+      const res = await fetch(API + endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errEl.textContent = data.detail || 'Something went wrong.';
+      } else {
+        jwt       = data.token;
+        userEmail = email;
+        localStorage.setItem('nb_jwt',   jwt);
+        localStorage.setItem('nb_email', email);
+        okEl.textContent = authMode === 'login' ? '✓ Signed in!' : '✓ Account created!';
+        setTimeout(() => {
+          closeModal();
+          updateAuthUI();
+          // unlock anhbot — switch to nambot (already active)
+          updateAuthUI();
+          selectBot('nambot');
+        }, 800);
+      }
+    } catch (e) {
+      errEl.textContent = '⚠ Could not reach server. Is the backend running?';
+    }
+
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
+  }
+
+  function logout() {
+    jwt = null; userEmail = null;
+    localStorage.removeItem('nb_jwt');
+    localStorage.removeItem('nb_email');
+    guestPrompts = GUEST_LIMIT;
+    localStorage.setItem('nb_guest', guestPrompts);
+    updateAuthUI();
+    selectBot('nambot');
+  }
+
+  function requireAuth(botKey) {
+    openModal('register');
+    document.getElementById('modalSub').textContent = `Register free to unlock ${BOTS[botKey].name} and all other bots.`;
+  }
+
+  /* ── BOT SELECTION ── */
+  function selectBot(botKey) {
+    if (!jwt && botKey !== 'nambot') { requireAuth(botKey); return; }
+    activeBot = botKey;
+    applyBotTheme(botKey);
+    document.querySelectorAll('.bot-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('card-' + botKey).classList.add('active');
+    conversation = [];
+    chatArea.innerHTML = '';
+    const welcomes = {
+      nambot: `Hi! I'm Nambot 🟢\n\nYour step-by-step math guide powered by Llama 3.3 70B. I make even the hardest problems feel clear and approachable.\n\nWhat would you like to solve today?`,
+      anhbot: `AnhBot online 🔴\n\nDeep reasoning from DeepSeek-R1. Built for competition math, advanced proofs, and multi-step derivations.\n\nGive me your toughest question.`,
+    };
+    addMessage('bot', welcomes[botKey]);
+    document.getElementById('solver').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function applyBotTheme(botKey) {
+    const bot = BOTS[botKey];
+    document.documentElement.style.setProperty('--accent',      bot.color);
+    document.documentElement.style.setProperty('--accent-dim',  bot.colorDim);
+    document.documentElement.style.setProperty('--accent-dim2', bot.colorDim2);
+    document.getElementById('heroGlow').style.background =
+      `radial-gradient(ellipse at center, ${bot.glowColor} 0%, transparent 70%)`;
+    const pill = document.getElementById('activePill');
+    pill.style.background  = bot.colorDim;
+    pill.style.borderColor = bot.pillBorder;
+    pill.style.color       = bot.color;
+    document.getElementById('pillDot').style.background  = bot.color;
+    document.getElementById('pillName').textContent      = bot.name;
+    document.getElementById('navDot').style.background   = bot.color;
+    document.getElementById('navDot').style.boxShadow    = `0 0 10px ${bot.color}`;
+  }
+
+  /* ── HELPERS ── */
+  function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 130) + 'px'; }
+  function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+
+  function addMessage(role, text, loading = false) {
+    const wrap   = document.createElement('div');
+    wrap.className = 'message ' + (role === 'user' ? 'user' : 'bot');
+    const label  = document.createElement('div');
+    label.className = 'msg-label';
+    label.textContent = role === 'user' ? 'You' : BOTS[activeBot].name;
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble' + (loading ? ' loading' : '');
+    bubble.textContent = text;
+    wrap.appendChild(label); wrap.appendChild(bubble);
+    chatArea.appendChild(wrap);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return bubble;
+  }
+
+  function addToHistory(question) {
+    const empty = document.getElementById('historyEmpty');
+    if (empty) empty.remove();
+    const bot = BOTS[activeBot];
+    const li  = document.createElement('li');
+    li.className = 'history-item';
+    li.onclick = () => { mathInput.value = question; mathInput.focus(); };
+    li.innerHTML = `<div class="hi-q">${question.replace(/</g,'&lt;')}</div>
+      <div class="hi-meta"><span class="hi-bot ${bot.shortCode}">${bot.name}</span></div>`;
+    historyList.insertBefore(li, historyList.firstChild);
+  }
+
+  function clearHistory() {
+    historyList.innerHTML = '';
+    const li = document.createElement('li');
+    li.className = 'history-empty'; li.id = 'historyEmpty';
+    li.innerHTML = 'No problems yet.<br/>Start solving!';
+    historyList.appendChild(li);
+  }
+
+  function useExample(text) { mathInput.value = text; mathInput.focus(); document.getElementById('solver').scrollIntoView({behavior:'smooth'}); }
+  function setTopic(example) { mathInput.value = example; mathInput.focus(); document.getElementById('solver').scrollIntoView({behavior:'smooth'}); }
+
+  /* ── SEND ── */
+  async function sendMessage() {
+    const text = mathInput.value.trim();
+    if (!text || isLoading) return;
+
+    // guest limit check
+    if (!jwt) {
+      if (guestPrompts <= 0) {
+        openModal('register');
+        document.getElementById('modalSub').textContent = "You've used your 10 free prompts. Register free for unlimited access.";
+        return;
+      }
+      guestPrompts--;
+      localStorage.setItem('nb_guest', guestPrompts);
+      updateGuestBanner();
+    }
+
+    isLoading = true;
+    sendBtn.disabled = true;
+    mathInput.value = '';
+    mathInput.style.height = 'auto';
+
+    addMessage('user', text);
+    conversation.push({ role: 'user', content: text });
+    addToHistory(text);
+
+    const loadBubble = addMessage('bot', '⟳ Computing solution…', true);
+
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
+
+      const res = await fetch(API + '/solve', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ bot: activeBot, messages: conversation, guest_count: jwt ? 0 : (GUEST_LIMIT - guestPrompts) })
+      });
+
+      if (res.status === 401) {
+        // token expired — log out and ask to re-login
+        logout();
+        loadBubble.textContent = 'Session expired. Please sign in again.';
+        loadBubble.classList.remove('loading');
+        openModal('login');
+        isLoading = false; sendBtn.disabled = false; return;
+      }
+
+      if (res.status === 402) {
+        loadBubble.textContent = '⚠ Token balance exhausted. Please upgrade your plan.';
+        loadBubble.classList.remove('loading');
+        isLoading = false; sendBtn.disabled = false; return;
+      }
+
+      if (res.status === 403) {
+        loadBubble.textContent = '🔒 AnhBot is for registered users. Register free to unlock it!';
+        loadBubble.classList.remove('loading');
+        isLoading = false; sendBtn.disabled = false; return;
+      }
+
+      const data  = await res.json();
+      const reply = data.reply || 'Sorry, I could not compute that.';
+
+      loadBubble.textContent = reply;
+      loadBubble.classList.remove('loading');
+      conversation.push({ role: 'assistant', content: reply });
+
+    } catch (err) {
+      loadBubble.textContent = '⚠ Could not reach the server. Is the backend running at ' + API + '?';
+      loadBubble.classList.remove('loading');
+      conversation.pop();
+    }
+
+    isLoading = false;
+    sendBtn.disabled = false;
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+</script>
+</body>
+</html>
