@@ -47,7 +47,7 @@ async def test_nambot():
 
 
 async def test_anhbot():
-    print("\n── ANHBOT (GitHub Models / DeepSeek-R1) ────────────────")
+    print("\n── ANHBOT (GitHub Models / GPT-4o) ────────────────")
     if not GITHUB_TOKEN:
         print("  ✗  GITHUB_TOKEN not set in .env")
         return
@@ -61,7 +61,7 @@ async def test_anhbot():
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "DeepSeek-R1",
+                    "model": "gpt-4o",
                     "max_tokens": 200,
                     "messages": TEST_MESSAGES,
                 },

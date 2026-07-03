@@ -4,8 +4,16 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Nambot — AI Math Solver</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js" async></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -103,15 +111,15 @@
 
   /* guest banner */
   .guest-banner {
-    background: var(--deepbot-dim); border: 1px solid rgba(192,132,252,0.25);
+    background: var(--nambot-dim); border: 1px solid rgba(91,255,200,0.25);
     border-radius: var(--r); padding: 10px 16px; margin-bottom: 16px;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     font-size: 13px; color: var(--text2);
   }
-  .guest-banner strong { color: var(--deepbot); }
-  .guest-banner .prompts-left { font-family: var(--font-mono); font-size: 12px; color: var(--deepbot); }
+  .guest-banner strong { color: var(--nambot); }
+  .guest-banner .prompts-left { font-family: var(--font-mono); font-size: 12px; color: var(--nambot); }
   .guest-register-btn {
-    background: var(--deepbot); color: #000; border: none; border-radius: 99px;
+    background: var(--nambot); color: #000; border: none; border-radius: 99px;
     padding: 5px 14px; font-size: 12px; font-family: var(--font-head); font-weight: 700;
     cursor: pointer; white-space: nowrap; transition: opacity .2s; flex-shrink: 0;
   }
@@ -147,18 +155,12 @@
   .bot-card::before { content:''; position: absolute; top:0; left:0; right:0; height:3px; border-radius: var(--r2) var(--r2) 0 0; opacity:0; transition: opacity .3s; }
   .bot-card.nambot-card::before  { background: var(--nambot); }
   .bot-card.anhbot-card::before  { background: var(--anhbot); }
-  .bot-card.gembot-card::before  { background: var(--gembot); }
-  .bot-card.deepbot-card::before { background: var(--deepbot); }
   .bot-card:hover { transform: translateY(-2px); }
   .bot-card.nambot-card:hover  { border-color: var(--nambot);  background: var(--bg3); }
   .bot-card.anhbot-card:hover  { border-color: var(--anhbot);  background: var(--bg3); }
-  .bot-card.gembot-card:hover  { border-color: var(--gembot);  background: var(--bg3); }
-  .bot-card.deepbot-card:hover { border-color: var(--deepbot); background: var(--bg3); }
   .bot-card.active::before { opacity:1; }
   .bot-card.nambot-card.active  { border-color: var(--nambot);  background: rgba(91,255,200,0.05); }
   .bot-card.anhbot-card.active  { border-color: var(--anhbot);  background: rgba(255,107,107,0.05); }
-  .bot-card.gembot-card.active  { border-color: var(--gembot);  background: rgba(79,195,247,0.05); }
-  .bot-card.deepbot-card.active { border-color: var(--deepbot); background: rgba(192,132,252,0.05); }
 
   /* locked bot overlay */
   .bot-card.locked { opacity: .5; cursor: not-allowed; }
@@ -170,19 +172,13 @@
   .bot-name { font-family: var(--font-head); font-size: 17px; font-weight: 800; margin-bottom: 4px; }
   .bot-card.nambot-card  .bot-name { color: var(--nambot); }
   .bot-card.anhbot-card  .bot-name { color: var(--anhbot); }
-  .bot-card.gembot-card  .bot-name { color: var(--gembot); }
-  .bot-card.deepbot-card .bot-name { color: var(--deepbot); }
   .bot-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
   .bot-tag { display: inline-block; margin-top: 10px; font-size: 10px; font-family: var(--font-mono); padding: 3px 8px; border-radius: 5px; font-weight: 500; }
   .nambot-card  .bot-tag { background: var(--nambot-dim);  color: var(--nambot); }
   .anhbot-card  .bot-tag { background: var(--anhbot-dim);  color: var(--anhbot); }
-  .gembot-card  .bot-tag { background: var(--gembot-dim);  color: var(--gembot); }
-  .deepbot-card .bot-tag { background: var(--deepbot-dim); color: var(--deepbot); }
   .active-check { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; opacity: 0; transition: opacity .3s; }
   .nambot-card  .active-check { background: var(--nambot-dim);  color: var(--nambot); }
   .anhbot-card  .active-check { background: var(--anhbot-dim);  color: var(--anhbot); }
-  .gembot-card  .active-check { background: var(--gembot-dim);  color: var(--gembot); }
-  .deepbot-card .active-check { background: var(--deepbot-dim); color: var(--deepbot); }
   .bot-card.active .active-check { opacity: 1; }
 
   /* ── SOLVER ── */
@@ -200,8 +196,6 @@
   .hi-bot { font-size: 10px; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; }
   .hi-bot.nb { background: var(--nambot-dim);  color: var(--nambot); }
   .hi-bot.ab { background: var(--anhbot-dim);  color: var(--anhbot); }
-  .hi-bot.gb { background: var(--gembot-dim);  color: var(--gembot); }
-  .hi-bot.db { background: var(--deepbot-dim); color: var(--deepbot); }
   .history-empty { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
 
   .solver { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); overflow: hidden; display: flex; flex-direction: column; transition: border-color .4s; }
@@ -265,6 +259,26 @@
   @media (max-width: 900px) { .bots-grid { grid-template-columns: repeat(2,1fr); } }
   @media (max-width: 768px) { .app-grid{grid-template-columns:1fr} .sidebar{position:static} .steps{grid-template-columns:1fr} .nav-links{display:none} .hero{padding:120px 1.5rem 60px} .bots-grid{grid-template-columns:1fr 1fr} }
   @media (max-width: 480px) { .bots-grid{grid-template-columns:1fr} }
+
+/* ── IMAGE UPLOAD ── */
+.upload-btn {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--r); color: var(--text2);
+  width: 46px; height: 46px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; transition: border-color .2s, color .2s;
+}
+.upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+#imageInput { display: none; }
+
+.image-preview {
+  padding: 10px 20px; border-top: 1px solid var(--border);
+  display: none; align-items: center; gap: 10px; background: var(--bg2);
+}
+.image-preview img { height: 60px; border-radius: 6px; border: 1px solid var(--border2); object-fit: cover; }
+.image-preview-name { font-family: var(--font-mono); font-size: 12px; color: var(--text2); flex: 1; }
+.remove-image { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 4px; transition: color .2s; }
+.remove-image:hover { color: #ff6b6b; }
 </style>
 </head>
 <body>
@@ -274,7 +288,7 @@
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h2 id="modalTitle">Welcome back</h2>
-    <p class="modal-sub" id="modalSub">Sign in to unlock all 4 bots with unlimited prompts.</p>
+    <p class="modal-sub" id="modalSub">Sign in to unlock all 2 bots with unlimited prompts.</p>
     <div class="modal-tabs">
       <button class="modal-tab active" id="tabLogin"    onclick="switchTab('login')">Login</button>
       <button class="modal-tab"        id="tabRegister" onclick="switchTab('register')">Register</button>
@@ -317,10 +331,9 @@
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-glow" id="heroGlow"></div>
-  <div class="hero-badge" id="heroBadge">✦ 4 AI Bots · Step-by-Step · Instant</div>
+  <div class="hero-badge" id="heroBadge">✦ 2 AI Bots · Step-by-Step · Instant</div>
   <h1>Solve <em id="heroEm">Any</em> Math<br/>Problem Instantly</h1>
-  <p>Choose your AI companion — four powerful bots, each tuned differently. Free to start, more power when you register.</p>
-  <div class="hero-btns">
+  <p>Choose your AI companion — two powerful bots, each tuned differently. Free to start, more power when you register.</p>  <div class="hero-btns">
     <a href="#bots" class="btn-primary">Choose your bot →</a>
     <a href="#features" class="btn-ghost">See features</a>
   </div>
@@ -343,7 +356,7 @@
       <div class="active-check">✓</div>
       <span class="bot-avatar">🟢</span>
       <div class="bot-name">NamBot</div>
-      <p class="bot-desc">Your step-by-step math guide powered by Llama 3.3 70B on Groq. Crystal-clear numbered steps, instant speed, and a helpful tip with every solution.</p>
+      <p class="bot-desc">Your step-by-step math guide powered by Llama 4 Scout on Groq. Crystal-clear numbered steps, instant speed, and a helpful tip with every solution.</p>
       <span class="bot-tag">✦ Free · No login needed (10 prompts)</span>
     </div>
 
@@ -351,7 +364,7 @@
       <div class="lock-badge">🔒 registered</div>
       <span class="bot-avatar">🔴</span>
       <div class="bot-name">AnhBot</div>
-      <p class="bot-desc">Deep reasoning power from DeepSeek-R1. Chain-of-thought on the hardest problems — competition math, advanced proofs, and multi-step derivations.</p>
+      <p class="bot-desc">Deep reasoning power from GPT-4o. Chain-of-thought on the hardest problems — competition math, advanced proofs, and multi-step derivations.</p>
       <span class="bot-tag">Registered users</span>
     </div>
 
@@ -407,12 +420,25 @@
       <div class="chat-area" id="chatArea">
         <div class="message bot">
           <div class="msg-label">Nambot</div>
-          <div class="msg-bubble">Hello! 🟢 I'm Nambot — free for everyone, up to 10 prompts without login.\n\nRegister free to unlock AnhBot too (DeepSeek-R1 for harder problems).\n\nType your math problem and I'll solve it step by step!</div>
+          <div class="msg-bubble">
+            Hello! 🟢 I'm Nambot — free for everyone, up to 10 prompts without login.<br>
+            Register for free to unlock AnhBot for harder problems.<br>
+            Type your math problem and I'll solve it step by step!
+          </div>
         </div>
       </div>
 
+      <!-- image preview bar (hidden until image selected) -->
+      <div class="image-preview" id="imagePreview">
+        <img id="previewImg" src="" alt="preview"/>
+        <span class="image-preview-name" id="previewName"></span>
+        <button class="remove-image" onclick="removeImage()" title="Remove image">✕</button>
+      </div>
+
       <div class="input-area">
-        <textarea id="mathInput" placeholder="e.g. Solve x² + 5x + 6 = 0 …" rows="1"
+        <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)"/>
+        <button class="upload-btn" onclick="document.getElementById('imageInput').click()" title="Upload math photo">[◉"]</button>
+        <textarea id="mathInput" placeholder="e.g. Solve x² + 5x + 6 = 0 … or upload a photo [◉']" rows="1"
           onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
       </div>
@@ -428,7 +454,7 @@
   <div class="section-h2">Everything You Need</div>
   <div class="features-grid">
     <div class="feature-card"><span class="feat-icon">🆓</span><div class="feat-title">Free to start</div><p class="feat-desc">NamBot is available instantly with no account needed. Get step-by-step solutions right away.</p></div>
-    <div class="feature-card"><span class="feat-icon">🤖</span><div class="feat-title">2 AI Bots</div><p class="feat-desc">Nambot (Llama 3.3 70B) is free for guests. Register to also unlock AnhBot (DeepSeek-R1) for the hardest problems.</p></div>
+    <div class="feature-card"><span class="feat-icon">🤖</span><div class="feat-title">2 AI Bots</div><p class="feat-desc">Nambot (Llama 4 Scout) is free for guests. Register to also unlock AnhBot (GPT-4o) for the hardest problems.</p></div>
     <div class="feature-card"><span class="feat-icon">🪜</span><div class="feat-title">Step-by-Step</div><p class="feat-desc">Never just an answer. Every bot shows numbered steps so you understand the method, not just the result.</p></div>
     <div class="feature-card"><span class="feat-icon">🧠</span><div class="feat-title">Context Memory</div><p class="feat-desc">Ask follow-up questions. Each bot remembers your conversation so you can dig deeper into any solution.</p></div>
     <div class="feature-card"><span class="feat-icon">🗂️</span><div class="feat-title">History Log</div><p class="feat-desc">Every problem is saved in your sidebar, tagged with which bot answered it.</p></div>
@@ -465,7 +491,7 @@
   <div class="section-title">How It Works</div>
   <div class="section-h2">Three Simple Steps</div>
   <div class="steps">
-    <div class="step"><div class="step-num">01</div><h3>Pick your bot</h3><p>Start free with Nambot (10 prompts, no login). Register free to also unlock AnhBot — DeepSeek-R1 for the hardest problems.</p></div>
+    <div class="step"><div class="step-num">01</div><h3>Pick your bot</h3><p>Start free with Nambot (10 prompts, no login). Register free to also unlock AnhBot — GPT-4o for the hardest problems.</p></div>
     <div class="step"><div class="step-num">02</div><h3>Type your problem</h3><p>Enter any math question in plain English or standard notation. No special formatting needed — all bots understand both.</p></div>
     <div class="step"><div class="step-num">03</div><h3>Learn & ask more</h3><p>Read the step-by-step solution, ask follow-up questions, or switch bots for a second opinion.</p></div>
   </div>
@@ -643,8 +669,8 @@
     conversation = [];
     chatArea.innerHTML = '';
     const welcomes = {
-      nambot: `Hi! I'm Nambot 🟢\n\nYour step-by-step math guide powered by Llama 3.3 70B. I make even the hardest problems feel clear and approachable.\n\nWhat would you like to solve today?`,
-      anhbot: `AnhBot online 🔴\n\nDeep reasoning from DeepSeek-R1. Built for competition math, advanced proofs, and multi-step derivations.\n\nGive me your toughest question.`,
+      nambot: `Hi! I'm Nambot 🟢\n\nYour step-by-step math guide powered by Llama 4 Scout. I make even the hardest problems feel clear and approachable.\n\nWhat would you like to solve today?`,
+      anhbot: `AnhBot online 🔴\n\nDeep reasoning from GPT-4o via GitHub Models. Built for competition math, advanced proofs, and multi-step derivations.\n\nGive me your toughest question.`,
     };
     addMessage('bot', welcomes[botKey]);
     document.getElementById('solver').scrollIntoView({ behavior: 'smooth' });
@@ -709,10 +735,42 @@
   function useExample(text) { mathInput.value = text; mathInput.focus(); document.getElementById('solver').scrollIntoView({behavior:'smooth'}); }
   function setTopic(example) { mathInput.value = example; mathInput.focus(); document.getElementById('solver').scrollIntoView({behavior:'smooth'}); }
 
+/* ── IMAGE UPLOAD ── */
+let pendingImageB64  = null;
+let pendingImageMime = 'image/jpeg';
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image must be under 5 MB.'); return;
+  }
+  pendingImageMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    pendingImageB64 = dataUrl.split(',')[1];   // strip "data:...;base64,"
+    document.getElementById('previewImg').src   = dataUrl;
+    document.getElementById('previewName').textContent = file.name;
+    document.getElementById('imagePreview').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+  // reset input so same file can be re-selected
+  e.target.value = '';
+}
+
+function removeImage() {
+  pendingImageB64  = null;
+  pendingImageMime = 'image/jpeg';
+  document.getElementById('previewImg').src = '';
+  document.getElementById('previewName').textContent = '';
+  document.getElementById('imagePreview').style.display = 'none';
+}
+
   /* ── SEND ── */
   async function sendMessage() {
     const text = mathInput.value.trim();
-    if (!text || isLoading) return;
+    if ((!text && !pendingImageB64) || isLoading) return;
 
     // guest limit check
     if (!jwt) {
@@ -731,8 +789,19 @@
     mathInput.value = '';
     mathInput.style.height = 'auto';
 
-    addMessage('user', text);
-    conversation.push({ role: 'user', content: text });
+    // show image in chat if attached
+    if (pendingImageB64) {
+      const imgMsg = document.createElement('div');
+      imgMsg.className = 'message user';
+      imgMsg.innerHTML = `<div class="msg-label">You</div>
+        <img src="data:${pendingImageMime};base64,${pendingImageB64}"
+             style="max-width:260px;max-height:200px;border-radius:10px;border:1px solid var(--border2);margin-bottom:4px;display:block;"/>`;
+      chatArea.appendChild(imgMsg);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    addMessage('user', text || 'Image sent');
+    conversation.push({ role: 'user', content: text || 'Please solve the math problem in this image.' });
     addToHistory(text);
 
     const loadBubble = addMessage('bot', '⟳ Computing solution…', true);
@@ -741,10 +810,18 @@
       const headers = { 'Content-Type': 'application/json' };
       if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
 
+      console.log('image attached:', !!pendingImageB64);
+
       const res = await fetch(API + '/solve', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ bot: activeBot, messages: conversation, guest_count: jwt ? 0 : (GUEST_LIMIT - guestPrompts) })
+        body: JSON.stringify({
+          bot:         activeBot,
+          messages:    conversation,
+          guest_count: jwt ? 0 : (GUEST_LIMIT - guestPrompts),
+          image_b64:   pendingImageB64  || null,
+          image_mime:  pendingImageMime || 'image/jpeg',
+        })
       });
 
       if (res.status === 401) {
@@ -773,7 +850,11 @@
 
       loadBubble.textContent = reply;
       loadBubble.classList.remove('loading');
+      // re-render any LaTeX in the new bubble
+      if (window.MathJax) MathJax.typesetPromise([loadBubble]).catch(console.error);
       conversation.push({ role: 'assistant', content: reply });
+      // clear image after sending
+      removeImage();
 
     } catch (err) {
       loadBubble.textContent = '⚠ Could not reach the server. Is the backend running at ' + API + '?';

@@ -10,7 +10,7 @@ A free AI-powered math solver with two bots, JWT authentication, and per-user us
 
 | Bot | Model | Provider | Access |
 |---|---|---|---|
-| 🟢 **Nambot** | Llama 3.3 70B | Groq | Free — guests get 10 prompts, registered users unlimited |
+| 🟢 **Nambot** | Llama 4 Scout | Groq | Free — guests get 10 prompts, registered users unlimited |
 | 🔴 **AnhBot** | GPT-4o | GitHub Models | Registered users only |
 
 Both APIs are **completely free** — no credit card needed.
