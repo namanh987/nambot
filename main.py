@@ -38,3 +38,7 @@ def serve_frontend():
 @app.get("/favicon.png")
 def favicon():
     return FileResponse("favicon.png")
+
+@app.get("/logo_anhbot.png")
+def anhbot_logo():
+    return FileResponse("logo_anhbot.png")

@@ -309,7 +309,7 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <a class="nav-logo" href="#"><span class="dot" id="navDot"></span>Nambot</a>
+  <a class="nav-logo" href="#"><img src="favicon.png" id="navDot" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />Nambot</a>
   <ul class="nav-links">
     <li><a href="#bots">AI Bots</a></li>
     <li><a href="#solver">Solver</a></li>
@@ -331,6 +331,7 @@
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-glow" id="heroGlow"></div>
+  <img id="heroLogo" src="favicon.png" style="width:90px;height:90px;margin:-30px auto 1.5rem;display:block;filter:drop-shadow(0 0 20px rgba(91,255,200,0.4));transition:filter 0.4s;" />
   <div class="hero-badge" id="heroBadge">✦ 2 AI Bots · Step-by-Step · Instant</div>
   <h1>Solve <em id="heroEm">Any</em> Math<br/>Problem Instantly</h1>
   <p>Choose your AI companion — two powerful bots, each tuned differently. Free to start, more power when you register.</p>  <div class="hero-btns">
@@ -498,7 +499,10 @@
 </section>
 
 <footer>
-  <div class="footer-logo"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;transition:background .4s"></span>&nbsp;Nambot</div>
+  <div class="footer-logo">
+  <img src="favicon.png" id="footerLogo" style="width:22px;height:22px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 6px #5bffc8);transition:filter 0.4s;" />
+  &nbsp;Nambot
+  </div>
   <ul class="footer-links"><li><a href="#bots">Bots</a></li><li><a href="#solver">Solver</a></li><li><a href="#features">Features</a></li><li><a href="#topics">Topics</a></li></ul>
   <div class="footer-copy">© 2026 Nambot. Free math AI for everyone.</div>
 </footer>
@@ -681,6 +685,13 @@
     document.documentElement.style.setProperty('--accent',      bot.color);
     document.documentElement.style.setProperty('--accent-dim',  bot.colorDim);
     document.documentElement.style.setProperty('--accent-dim2', bot.colorDim2);
+    // update hero logo glow color
+    const heroLogo = document.getElementById('heroLogo');
+    if (heroLogo) {
+      heroLogo.src    = botKey === 'anhbot' ? 'logo_anhbot.png' : 'favicon.png';
+      heroLogo.style.filter = `drop-shadow(0 0 20px ${bot.color}80)`;
+    }
+
     document.getElementById('heroGlow').style.background =
       `radial-gradient(ellipse at center, ${bot.glowColor} 0%, transparent 70%)`;
     const pill = document.getElementById('activePill');
@@ -689,8 +700,16 @@
     pill.style.color       = bot.color;
     document.getElementById('pillDot').style.background  = bot.color;
     document.getElementById('pillName').textContent      = bot.name;
-    document.getElementById('navDot').style.background   = bot.color;
-    document.getElementById('navDot').style.boxShadow    = `0 0 10px ${bot.color}`;
+    const navLogo = document.getElementById('navDot');
+    if (navLogo) {
+      navLogo.src    = botKey === 'anhbot' ? 'logo_anhbot.png' : 'favicon.png';
+      navLogo.style.filter = `drop-shadow(0 0 8px ${bot.color})`;
+    }
+    const footerLogo = document.getElementById('footerLogo');
+    if (footerLogo) {
+      footerLogo.src = botKey === 'anhbot' ? 'logo_anhbot.png' : 'favicon.png';
+      footerLogo.style.filter = `drop-shadow(0 0 6px ${bot.color})`;
+    }
   }
 
   /* ── HELPERS ── */
